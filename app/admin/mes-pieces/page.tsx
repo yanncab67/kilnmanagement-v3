@@ -20,6 +20,16 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 // Types
 interface User {
@@ -71,6 +81,11 @@ export default function AdminMesPiecesPage() {
   const [requestType, setRequestType] = useState<"biscuit" | "emaillage" | null>(null)
   const [selectedPieceId, setSelectedPieceId] = useState<number | null>(null)
   const [requestedDate, setRequestedDate] = useState("")
+
+  // 🗑️ États pour la suppression
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [pieceToDelete, setPieceToDelete] = useState<number | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // 🔒 Vérification session + rôle admin
   useEffect(() => {
@@ -306,6 +321,51 @@ export default function AdminMesPiecesPage() {
       setRequestedDate("")
     } catch (error) {
       console.error("❌ Erreur réseau:", error)
+    }
+  }
+
+  // 🗑️ Ouvrir le dialog de suppression
+  const openDeleteDialog = (pieceId: number) => {
+    console.log("🗑️ Ouverture dialog de suppression pour pièce", pieceId)
+    setPieceToDelete(pieceId)
+    setShowDeleteDialog(true)
+  }
+
+  // 🗑️ Confirmer la suppression
+  const confirmDelete = async () => {
+    if (!pieceToDelete || !currentUser?.email) return
+
+    console.log("🗑️ Suppression de la pièce", pieceToDelete)
+    setIsDeleting(true)
+
+    try {
+      const res = await fetch(`/api/pieces/${pieceToDelete}`, {
+        method: "DELETE",
+      })
+
+      console.log("📊 Statut suppression:", res.status)
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        console.error("❌ Erreur:", errorData)
+        alert("Erreur lors de la suppression de la pièce")
+        setIsDeleting(false)
+        return
+      }
+
+      const data = await res.json()
+      console.log("✅ Pièce supprimée:", data)
+      
+      // Recharger les pièces
+      await loadPieces(currentUser.email)
+
+      setShowDeleteDialog(false)
+      setPieceToDelete(null)
+      setIsDeleting(false)
+    } catch (error) {
+      console.error("❌ Erreur réseau:", error)
+      alert("Erreur réseau lors de la suppression")
+      setIsDeleting(false)
     }
   }
 
@@ -586,6 +646,15 @@ export default function AdminMesPiecesPage() {
                           ? "⏰ En attente du biscuit"
                           : "🎨 Demander cuisson émaillage"}
                       </Button>
+
+                      {/* 🗑️ Bouton de suppression */}
+                      <Button
+                        onClick={() => openDeleteDialog(piece.id)}
+                        variant="destructive"
+                        className="w-full"
+                      >
+                        🗑️ Supprimer cette pièce
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -686,6 +755,50 @@ export default function AdminMesPiecesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* 🗑️ Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer cette pièce ? 
+              <br /><br />
+              <strong className="text-red-600">Cette action est irréversible</strong> et supprimera :
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>La pièce de votre liste</li>
+                <li>La photo associée</li>
+                <li>Toutes les demandes de cuisson en cours</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              onClick={() => {
+                setShowDeleteDialog(false)
+                setPieceToDelete(null)
+              }}
+              disabled={isDeleting}
+            >
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Suppression...
+                </>
+              ) : (
+                <>🗑️ Supprimer</>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
