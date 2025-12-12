@@ -19,6 +19,16 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 export default function PracticianPage() {
   const router = useRouter()
@@ -34,18 +44,20 @@ export default function PracticianPage() {
   const [requestType, setRequestType] = useState<"biscuit" | "emaillage" | null>(null)
   const [showDateDialog, setShowDateDialog] = useState(false)
   const [selectedDate, setSelectedDate] = useState("")
-  
-  // ✅ États pour la photo
   const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState("")
-  const [photoUrl, setPhotoUrl] = useState("") // ✅ AJOUTÉ
-  const [isUploading, setIsUploading] = useState(false) // ✅ AJOUTÉ
-  
+  const [photoUrl, setPhotoUrl] = useState("")
+  const [isUploading, setIsUploading] = useState(false)
   const [temperatureType, setTemperatureType] = useState("")
   const [clayType, setClayType] = useState("")
   const [notes, setNotes] = useState("")
   const [biscuitDone, setBiscuitDone] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // 🗑️ États pour la suppression
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [pieceToDelete, setPieceToDelete] = useState<number | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const user = session?.user as any
   const userEmail: string = user?.email ?? ""
@@ -89,7 +101,7 @@ export default function PracticianPage() {
     }
   }, [isPending, session, userEmail, router])
 
-  // ✅ NOUVELLE FONCTION : Upload immédiat au changement de fichier
+  // ✅ Upload immédiat au changement de fichier
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) {
@@ -128,7 +140,6 @@ export default function PracticianPage() {
         console.error("❌ Erreur upload - Réponse:", errorText)
         alert(`Impossible d'uploader la photo: ${errorText}`)
         
-        // Reset en cas d'erreur
         setPhotoFile(null)
         setPhotoPreview("")
         setPhotoUrl("")
@@ -145,7 +156,6 @@ export default function PracticianPage() {
       console.error("❌ Erreur réseau lors de l'upload:", error)
       alert("Erreur lors de l'upload de la photo. Vérifiez la console.")
       
-      // Reset en cas d'erreur
       setPhotoFile(null)
       setPhotoPreview("")
       setPhotoUrl("")
@@ -155,14 +165,12 @@ export default function PracticianPage() {
     }
   }
 
-  // ✅ FONCTION SIMPLIFIÉE : Plus besoin d'uploader ici
   const handleAddPiece = async () => {
     console.log("🔍 handleAddPiece - Début")
     console.log("📸 photoUrl:", photoUrl)
     console.log("🌡️ temperatureType:", temperatureType)
     console.log("🏺 clayType:", clayType)
     
-    // ✅ Vérifier photoUrl au lieu de photoFile
     if (!photoUrl || !temperatureType || !clayType) {
       alert("Veuillez remplir tous les champs obligatoires (photo, température, type de terre)")
       console.log("⚠️ Champs manquants")
@@ -183,7 +191,7 @@ export default function PracticianPage() {
         body: JSON.stringify({
           userEmail,
           firstName,
-          photoUrl, // ✅ Utiliser photoUrl directement
+          photoUrl,
           temperatureType,
           clayType,
           notes,
@@ -205,14 +213,12 @@ export default function PracticianPage() {
       
       alert("✅ Pièce ajoutée avec succès!")
       
-      // Recharger les pièces
       await loadPieces(userEmail)
 
-      // ✅ Reset complet du formulaire
       setShowForm(false)
       setPhotoFile(null)
       setPhotoPreview("")
-      setPhotoUrl("") // ✅ Reset photoUrl
+      setPhotoUrl("")
       setTemperatureType("")
       setClayType("")
       setNotes("")
@@ -276,6 +282,53 @@ export default function PracticianPage() {
     }
   }
 
+  // 🗑️ Ouvrir le dialog de suppression
+  const openDeleteDialog = (pieceId: number) => {
+    console.log("🗑️ Ouverture dialog de suppression pour pièce", pieceId)
+    setPieceToDelete(pieceId)
+    setShowDeleteDialog(true)
+  }
+
+  // 🗑️ Confirmer la suppression
+  const confirmDelete = async () => {
+    if (!pieceToDelete) return
+
+    console.log("🗑️ Suppression de la pièce", pieceToDelete)
+    setIsDeleting(true)
+
+    try {
+      const res = await fetch(`/api/pieces/${pieceToDelete}`, {
+        method: "DELETE",
+      })
+
+      console.log("📊 Statut suppression:", res.status)
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        console.error("❌ Erreur:", errorData)
+        alert("Erreur lors de la suppression de la pièce")
+        setIsDeleting(false)
+        return
+      }
+
+      const data = await res.json()
+      console.log("✅ Pièce supprimée:", data)
+      
+      // Recharger les pièces
+      if (userEmail) {
+        await loadPieces(userEmail)
+      }
+
+      setShowDeleteDialog(false)
+      setPieceToDelete(null)
+      setIsDeleting(false)
+    } catch (error) {
+      console.error("❌ Erreur réseau:", error)
+      alert("Erreur réseau lors de la suppression")
+      setIsDeleting(false)
+    }
+  }
+
   const handleLogout = () => {
     console.log("👋 Déconnexion")
     router.push("/auth/sign-out")
@@ -286,7 +339,6 @@ export default function PracticianPage() {
     fileInputRef.current?.click()
   }
 
-  // ✅ Rendu "safe"
   if (isPending) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -529,6 +581,15 @@ export default function PracticianPage() {
                           ? "⏰ En attente du biscuit"
                           : "Demander cuisson émaillage"}
                       </Button>
+
+                      {/* 🗑️ Bouton de suppression */}
+                      <Button
+                        onClick={() => openDeleteDialog(piece.id)}
+                        variant="destructive"
+                        className="w-full"
+                      >
+                        🗑️ Supprimer cette pièce
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -619,6 +680,50 @@ export default function PracticianPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* 🗑️ Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer cette pièce ? 
+              <br /><br />
+              <strong className="text-red-600">Cette action est irréversible</strong> et supprimera :
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>La pièce de votre liste</li>
+                <li>La photo associée</li>
+                <li>Toutes les demandes de cuisson en cours</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              onClick={() => {
+                setShowDeleteDialog(false)
+                setPieceToDelete(null)
+              }}
+              disabled={isDeleting}
+            >
+              Annuler
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={isDeleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeleting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Suppression...
+                </>
+              ) : (
+                <>🗑️ Supprimer</>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
