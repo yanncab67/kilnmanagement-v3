@@ -22,79 +22,70 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    let rows
+    const rows =
+      type === "biscuit"
+        ? await sql/* sql */`
+            UPDATE pieces
+            SET
+              biscuit_completed = TRUE,
+              biscuit_completed_date = NOW()
+            WHERE id = ${pieceId}
+            RETURNING
+              id,
+              user_email,
+              user_first_name,
+              photo_url,
+              temperature_type,
+              clay_type,
+              notes,
+              biscuit_requested,
+              biscuit_completed,
+              biscuit_date,
+              biscuit_completed_date,
+              emaillage_requested,
+              emaillage_completed,
+              emaillage_date,
+              emaillage_completed_date,
+              submitted_date
+          `
+        : await sql/* sql */`
+            UPDATE pieces
+            SET
+              emaillage_completed = TRUE,
+              emaillage_completed_date = NOW()
+            WHERE id = ${pieceId}
+            RETURNING
+              id,
+              user_email,
+              user_first_name,
+              photo_url,
+              temperature_type,
+              clay_type,
+              notes,
+              biscuit_requested,
+              biscuit_completed,
+              biscuit_date,
+              biscuit_completed_date,
+              emaillage_requested,
+              emaillage_completed,
+              emaillage_date,
+              emaillage_completed_date,
+              submitted_date
+          `
 
-    if (type === "biscuit") {
-      rows = await sql/* sql */`
-        UPDATE pieces
-        SET
-          biscuit_completed = TRUE,
-          biscuit_completed_date = NOW()
-        WHERE id = ${pieceId}
-        RETURNING
-          id,
-          user_email,
-          user_first_name,
-          user_last_name,
-          photo,
-          temperature_type,
-          clay_type,
-          notes,
-          biscuit_requested,
-          biscuit_completed,
-          biscuit_date,
-          biscuit_completed_date,
-          emaillage_requested,
-          emaillage_completed,
-          emaillage_date,
-          emaillage_completed_date,
-          submitted_date
-      `
-    } else {
-      rows = await sql/* sql */`
-        UPDATE pieces
-        SET
-          emaillage_completed = TRUE,
-          emaillage_completed_date = NOW()
-        WHERE id = ${pieceId}
-        RETURNING
-          id,
-          user_email,
-          user_first_name,
-          user_last_name,
-          photo,
-          temperature_type,
-          clay_type,
-          notes,
-          biscuit_requested,
-          biscuit_completed,
-          biscuit_date,
-          biscuit_completed_date,
-          emaillage_requested,
-          emaillage_completed,
-          emaillage_date,
-          emaillage_completed_date,
-          submitted_date
-      `
+    if (!rows || rows.length === 0) {
+      return NextResponse.json({ error: "Pièce introuvable" }, { status: 404 })
     }
 
-    if (rows.length === 0) {
-      return NextResponse.json(
-        { error: "Pièce introuvable" },
-        { status: 404 },
-      )
-    }
-
-    const row = rows[0]
+    const row: any = rows[0]
 
     const piece = {
       id: row.id,
       submittedBy: {
         email: row.user_email,
         firstName: row.user_first_name,
-        lastName: row.user_last_name,
       },
-      photo: row.photo,
+      photoUrl: row.photo_url,
       temperatureType: row.temperature_type,
       clayType: row.clay_type,
       notes: row.notes,

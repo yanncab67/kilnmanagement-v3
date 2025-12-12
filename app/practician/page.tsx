@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-
+import { authClient } from "@/lib/auth/client"
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -22,7 +22,10 @@ import {
 
 export default function PracticianPage() {
   const router = useRouter()
-  const [currentUser, setCurrentUser] = useState<any>(null)
+
+  // ✅ Neon session
+  const { data: session, isPending } = authClient.useSession()
+
   const [showForm, setShowForm] = useState(false)
   const [pieces, setPieces] = useState<any[]>([])
   const [completedPieces, setCompletedPieces] = useState<any[]>([])
@@ -31,40 +34,29 @@ export default function PracticianPage() {
   const [requestType, setRequestType] = useState<"biscuit" | "emaillage" | null>(null)
   const [showDateDialog, setShowDateDialog] = useState(false)
   const [selectedDate, setSelectedDate] = useState("")
-  const [photo, setPhoto] = useState("")
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState("")
   const [temperatureType, setTemperatureType] = useState("")
   const [clayType, setClayType] = useState("")
   const [notes, setNotes] = useState("")
   const [biscuitDone, setBiscuitDone] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    const userStr = localStorage.getItem("user")
-    if (!userStr) {
-      router.push("/")
-      return
-    }
-    const user = JSON.parse(userStr)
-    setCurrentUser(user)
+  const user = session?.user as any
+  const userEmail: string = user?.email ?? ""
+  const firstName: string = user?.metadata?.firstName ?? user?.name ?? ""
 
-    loadPieces(user.email)
-  }, [router])
-
-  const loadPieces = async (userEmail: string) => {
+  const loadPieces = async (email: string) => {
     try {
-      const res = await fetch(`/api/pieces?userEmail=${encodeURIComponent(userEmail)}`)
+      const res = await fetch(`/api/pieces?userEmail=${encodeURIComponent(email)}`)
       if (!res.ok) {
         console.error("Erreur lors du chargement des pièces")
         return
       }
       const data = await res.json()
 
-      const active = data.filter(
-        (piece: any) => !(piece.biscuitCompleted && piece.emaillageCompleted),
-      )
-      const completed = data.filter(
-        (piece: any) => piece.biscuitCompleted && piece.emaillageCompleted,
-      )
+      const active = data.filter((piece: any) => !(piece.biscuitCompleted && piece.emaillageCompleted))
+      const completed = data.filter((piece: any) => piece.biscuitCompleted && piece.emaillageCompleted)
 
       setPieces(active)
       setCompletedPieces(completed)
@@ -73,23 +65,51 @@ export default function PracticianPage() {
     }
   }
 
-  const handleAddPiece = async () => {
-    if (!photo || !temperatureType || !clayType) {
-      alert("Veuillez remplir tous les champs obligatoires")
+  // ✅ Redirection + chargement des pièces, sans casser l'ordre des hooks
+  useEffect(() => {
+    if (isPending) return
+
+    if (!session) {
+      router.replace("/auth/sign-in?redirectTo=/practician")
       return
     }
 
-    if (!currentUser) return
+    if (userEmail) {
+      loadPieces(userEmail)
+    }
+  }, [isPending, session, userEmail, router])
+
+  const handleAddPiece = async () => {
+    if (!photoFile || !temperatureType || !clayType) {
+      alert("Veuillez remplir tous les champs obligatoires")
+      return
+    }
+    if (!userEmail) return
 
     try {
+      const formData = new FormData()
+      formData.append("file", photoFile)
+
+      const uploadRes = await fetch("/api/upload-photo", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!uploadRes.ok) {
+        console.error("Erreur lors de l'upload de la photo")
+        alert("Impossible d'uploader la photo")
+        return
+      }
+
+      const { url } = await uploadRes.json()
+
       const res = await fetch("/api/pieces", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userEmail: currentUser.email,
-          firstName: currentUser.firstName,
-          lastName: currentUser.lastName,
-          photo,
+          userEmail,
+          firstName,
+          photoUrl: url,
           temperatureType,
           clayType,
           notes,
@@ -102,10 +122,11 @@ export default function PracticianPage() {
         return
       }
 
-      await loadPieces(currentUser.email)
+      await loadPieces(userEmail)
 
       setShowForm(false)
-      setPhoto("")
+      setPhotoFile(null)
+      setPhotoPreview("")
       setTemperatureType("")
       setClayType("")
       setNotes("")
@@ -122,8 +143,7 @@ export default function PracticianPage() {
   }
 
   const confirmFiringRequest = async () => {
-    if (!selectedDate || !activePieceId || !requestType) return
-    if (!currentUser) return
+    if (!selectedDate || !activePieceId || !requestType || !userEmail) return
 
     try {
       const res = await fetch("/api/pieces/firing", {
@@ -141,8 +161,7 @@ export default function PracticianPage() {
         return
       }
 
-      // const updated = await res.json()
-      await loadPieces(currentUser.email)
+      await loadPieces(userEmail)
 
       setShowDateDialog(false)
       setSelectedDate("")
@@ -154,8 +173,7 @@ export default function PracticianPage() {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem("user")
-    router.push("/")
+    router.push("/auth/sign-out")
   }
 
   const handlePhotoCapture = () => {
@@ -164,18 +182,27 @@ export default function PracticianPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        setPhoto(event.target?.result as string)
-      }
-      reader.readAsDataURL(file)
+    if (!file) return
+
+    setPhotoFile(file)
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      setPhotoPreview(event.target?.result as string)
     }
+    reader.readAsDataURL(file)
   }
 
-  if (!currentUser) {
-    return <div className="min-h-screen flex items-center justify-center">Chargement...</div>
+  // ✅ Rendu “safe” (pas de router.replace ici)
+  if (isPending) {
+    return <div className="min-h-screen flex items-center justify-center">Chargement de votre session...</div>
   }
+
+  if (!session) {
+    return <div className="min-h-screen flex items-center justify-center">Redirection vers la connexion...</div>
+  }
+
+  const currentUser = { email: userEmail, firstName }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f5d4c5] to-white p-4 md:p-8">
@@ -186,7 +213,7 @@ export default function PracticianPage() {
             <div>
               <h1 className="text-3xl font-bold text-[#8b6d47] flex items-center gap-2">🏺 Mes Pièces en Cuisson</h1>
               <p className="text-slate-600 mt-1">
-                Connecté en tant que: {currentUser.firstName} {currentUser.lastName} ({currentUser.email})
+                Connecté en tant que: {currentUser.firstName} ({currentUser.email})
               </p>
             </div>
             <Button onClick={handleLogout} className="bg-blue-600 hover:bg-blue-700">
@@ -219,10 +246,10 @@ export default function PracticianPage() {
                   onClick={handlePhotoCapture}
                   className="border-2 border-dashed border-[#c8623e] rounded-lg p-6 text-center cursor-pointer hover:bg-[#f5d4c5] transition"
                 >
-                  {photo ? (
+                  {photoPreview ? (
                     <div className="flex flex-col items-center gap-2">
                       <img
-                        src={photo || "/placeholder.svg"}
+                        src={photoPreview || "/placeholder.svg"}
                         alt="Preview"
                         className="h-32 w-32 object-cover rounded-lg"
                       />
@@ -321,9 +348,9 @@ export default function PracticianPage() {
               {pieces.map((piece) => (
                 <Card key={piece.id} className="overflow-hidden">
                   <div className="relative">
-                    {piece.photo && (
+                    {piece.photoUrl && (
                       <img
-                        src={piece.photo || "/placeholder.svg"}
+                        src={piece.photoUrl || "/placeholder.svg"}
                         alt="Ceramic piece"
                         className="w-full h-48 object-cover"
                       />
@@ -337,24 +364,18 @@ export default function PracticianPage() {
                     {piece.notes && <p className="text-sm text-slate-600 italic">"{piece.notes}"</p>}
 
                     <div className="space-y-2 pt-2">
-                      {/* Biscuit Button */}
                       <Button
                         onClick={() => handleRequestFiring(piece.id, "biscuit")}
                         disabled={piece.biscuitCompleted || piece.biscuitRequested}
                         className={`w-full ${
-                          piece.biscuitCompleted ? "bg-green-600 hover:bg-green-600" : "bg-[#c8623e] hover:bg-[#b8523e]"
+                          piece.biscuitCompleted
+                            ? "bg-green-600 hover:bg-green-600"
+                            : "bg-[#c8623e] hover:bg-[#b8523e]"
                         }`}
                       >
-                        {piece.biscuitCompleted ? (
-                          <>✓ Biscuit effectué</>
-                        ) : piece.biscuitRequested ? (
-                          <>⏰ Biscuit demandé</>
-                        ) : (
-                          <>Demander cuisson biscuit</>
-                        )}
+                        {piece.biscuitCompleted ? "✓ Biscuit effectué" : piece.biscuitRequested ? "⏰ Biscuit demandé" : "Demander cuisson biscuit"}
                       </Button>
 
-                      {/* Emaillage Button */}
                       <Button
                         onClick={() => handleRequestFiring(piece.id, "emaillage")}
                         disabled={!piece.biscuitCompleted || piece.emaillageRequested || piece.emaillageCompleted}
@@ -362,19 +383,17 @@ export default function PracticianPage() {
                           piece.emaillageCompleted
                             ? "bg-green-600 hover:bg-green-600"
                             : !piece.biscuitCompleted
-                              ? "bg-slate-300 hover:bg-slate-300"
-                              : "bg-[#c8623e] hover:bg-[#b8523e]"
+                            ? "bg-slate-300 hover:bg-slate-300"
+                            : "bg-[#c8623e] hover:bg-[#b8523e]"
                         }`}
                       >
-                        {piece.emaillageCompleted ? (
-                          <>✓ Émaillage effectué</>
-                        ) : piece.emaillageRequested ? (
-                          <>⏰ Émaillage demandé</>
-                        ) : !piece.biscuitCompleted ? (
-                          <>⏰ En attente du biscuit</>
-                        ) : (
-                          <>Demander cuisson émaillage</>
-                        )}
+                        {piece.emaillageCompleted
+                          ? "✓ Émaillage effectué"
+                          : piece.emaillageRequested
+                          ? "⏰ Émaillage demandé"
+                          : !piece.biscuitCompleted
+                          ? "⏰ En attente du biscuit"
+                          : "Demander cuisson émaillage"}
                       </Button>
                     </div>
                   </CardContent>
@@ -403,9 +422,9 @@ export default function PracticianPage() {
                 {completedPieces.map((piece) => (
                   <Card key={piece.id} className="overflow-hidden border-2 border-green-200 bg-green-50">
                     <div className="relative">
-                      {piece.photo && (
+                      {piece.photoUrl && (
                         <img
-                          src={piece.photo || "/placeholder.svg"}
+                          src={piece.photoUrl || "/placeholder.svg"}
                           alt="Ceramic piece"
                           className="w-full h-48 object-cover"
                         />
@@ -416,13 +435,10 @@ export default function PracticianPage() {
                     </div>
                     <CardContent className="p-4 space-y-3">
                       <div className="flex gap-2 flex-wrap">
-                        <span className="bg-green-100 px-2 py-1 rounded text-xs font-medium">
-                          {piece.temperatureType}
-                        </span>
+                        <span className="bg-green-100 px-2 py-1 rounded text-xs font-medium">{piece.temperatureType}</span>
                         <span className="bg-green-100 px-2 py-1 rounded text-xs font-medium">{piece.clayType}</span>
                       </div>
                       {piece.notes && <p className="text-sm text-slate-600 italic">"{piece.notes}"</p>}
-
                       <div className="space-y-2 pt-2 border-t border-green-200">
                         <div className="text-xs text-slate-600 space-y-1">
                           <div className="flex justify-between">

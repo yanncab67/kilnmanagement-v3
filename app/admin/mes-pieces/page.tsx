@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { authClient } from "@/lib/auth/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -14,7 +15,17 @@ import { Checkbox } from "@/components/ui/checkbox"
 
 export default function AdminMesPiecesPage() {
   const router = useRouter()
-  const [currentUser, setCurrentUser] = useState<any>(null)
+
+  // ✅ Session Neon Auth
+  const { data: session, isPending } = authClient.useSession()
+
+  // ✅ User courant dérivé de la session (quand on est sûr qu’il est admin)
+  const [currentUser, setCurrentUser] = useState<{
+    email: string | null
+    firstName: string
+    lastName: string
+  } | null>(null)
+
   const [pieces, setPieces] = useState<any[]>([])
   const [showForm, setShowForm] = useState(false)
 
@@ -29,30 +40,49 @@ export default function AdminMesPiecesPage() {
   const [selectedPieceId, setSelectedPieceId] = useState<number | null>(null)
   const [requestedDate, setRequestedDate] = useState("")
 
+  // 🔒 Vérification session + rôle admin
   useEffect(() => {
-    // 1) On récupère l'utilisateur du localStorage
-    const userStr = localStorage.getItem("user")
-    if (!userStr) {
-      router.push("/")
+    if (isPending) return
+
+    // 1) Pas de session → on envoie vers la page de login Neon avec redirectTo
+    if (!session) {
+      router.replace("/auth/sign-in?redirectTo=/admin/mes-pieces")
       return
     }
 
-    const user = JSON.parse(userStr)
-    setCurrentUser(user)
-  }, [router])
+    const user = session.user as any
+    const role =
+      user.role ??
+      user.metadata?.role ??
+      user["role"] ??
+      user.metadata?.["role"] ??
+      "practician"
 
+    // 2) Pas admin → on renvoie vers /practician
+    if (role !== "admin") {
+      router.replace("/practician")
+      return
+    }
+
+    // 3) OK, on est admin → on prépare currentUser
+    const current = {
+      email: user.email ?? null,
+      firstName: user.metadata?.firstName ?? user.name ?? "",
+      lastName: user.metadata?.lastName ?? "",
+    }
+
+    setCurrentUser(current)
+  }, [isPending, session, router])
+
+  // 🔁 Charger les pièces de cet admin quand on connaît currentUser
   useEffect(() => {
-    // 2) Dès qu'on a un currentUser, on charge ses pièces depuis l'API
-    if (!currentUser) return
-
-    loadPieces()
+    if (!currentUser?.email) return
+    loadPieces(currentUser.email)
   }, [currentUser])
 
-  const loadPieces = async () => {
-    if (!currentUser) return
-
+  const loadPieces = async (userEmail: string) => {
     try {
-      const res = await fetch(`/api/pieces?userEmail=${encodeURIComponent(currentUser.email)}`)
+      const res = await fetch(`/api/pieces?userEmail=${encodeURIComponent(userEmail)}`)
       if (!res.ok) {
         console.error("Erreur lors du chargement des pièces admin/mes-pieces")
         return
@@ -77,7 +107,7 @@ export default function AdminMesPiecesPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!currentUser) return
+    if (!currentUser?.email) return
 
     try {
       const res = await fetch("/api/pieces", {
@@ -91,7 +121,7 @@ export default function AdminMesPiecesPage() {
           temperatureType,
           clayType,
           notes,
-          biscuitAlreadyDone, // ce booléen est déjà géré côté API
+          biscuitAlreadyDone,
         }),
       })
 
@@ -100,11 +130,7 @@ export default function AdminMesPiecesPage() {
         return
       }
 
-      // On pourrait utiliser la pièce renvoyée :
-      // const created = await res.json()
-      // setPieces(prev => [created, ...prev])
-
-      await loadPieces()
+      await loadPieces(currentUser.email)
 
       // reset formulaire
       setPhoto("")
@@ -134,8 +160,8 @@ export default function AdminMesPiecesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           pieceId: selectedPieceId,
-          type: requestType,            // "biscuit" ou "emaillage"
-          desiredDate: requestedDate,   // "YYYY-MM-DD"
+          type: requestType,
+          desiredDate: requestedDate,
         }),
       })
 
@@ -144,8 +170,9 @@ export default function AdminMesPiecesPage() {
         return
       }
 
-      // const updated = await res.json()
-      await loadPieces()
+      if (currentUser?.email) {
+        await loadPieces(currentUser.email)
+      }
 
       setShowDateModal(false)
       setSelectedPieceId(null)
@@ -159,8 +186,9 @@ export default function AdminMesPiecesPage() {
   const activePieces = pieces.filter((p) => !(p.biscuitCompleted && p.emaillageCompleted))
   const completedPieces = pieces.filter((p) => p.biscuitCompleted && p.emaillageCompleted)
 
-  if (!currentUser) {
-    return <div className="min-h-screen flex items-center justify-center">Chargement...</div>
+  // ⏳ Pendant qu’on vérifie la session + rôle, ou qu’on n’a pas encore currentUser
+  if (isPending || !currentUser) {
+    return <div className="min-h-screen flex items-center justify-center">Chargement / vérification des droits...</div>
   }
 
   return (
@@ -183,10 +211,7 @@ export default function AdminMesPiecesPage() {
               Gestion des Cuissons
             </Button>
             <Button
-              onClick={() => {
-                localStorage.removeItem("user")
-                router.push("/")
-              }}
+              onClick={() => router.push("/auth/sign-out")}
               className="bg-blue-600 hover:bg-blue-700"
             >
               Déconnexion

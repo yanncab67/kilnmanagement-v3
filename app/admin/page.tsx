@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { authClient } from "@/lib/auth/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -9,10 +10,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function AdminPage() {
   const router = useRouter()
-  const [currentUser, setCurrentUser] = useState<any>(null)
+
+  // ✅ Session Neon Auth
+  const { data: session, isPending } = authClient.useSession()
+
+  // ✅ On stocke l'utilisateur une fois qu'on a confirmé qu'il est admin
+  const [currentUser, setCurrentUser] = useState<{
+    email: string | null
+    firstName: string
+    lastName: string
+  } | null>(null)
+
   const [pieces, setPieces] = useState<any[]>([])
 
-  // Filter states
+  // Filtres
   const [biscuitTempFilter, setBiscuitTempFilter] = useState("Tous")
   const [biscuitClayFilter, setBiscuitClayFilter] = useState("Tous")
   const [biscuitSortFilter, setBiscuitSortFilter] = useState("Toutes")
@@ -21,16 +32,46 @@ export default function AdminPage() {
   const [emaillageClayFilter, setEmaillageClayFilter] = useState("Tous")
   const [emaillageSortFilter, setEmaillageSortFilter] = useState("Toutes")
 
+  // 🔒 Gestion de l'auth + rôle ADMIN
   useEffect(() => {
-    const userStr = localStorage.getItem("user")
-    if (!userStr) {
-      router.push("/")
+    if (isPending) return // on attend la fin du chargement de la session
+
+    // 1) Pas de session → login Neon avec redirectTo=/admin
+    if (!session) {
+      router.replace("/auth/sign-in?redirectTo=/admin")
       return
     }
-    const user = JSON.parse(userStr)
-    setCurrentUser(user)
+
+    // 2) On lit l'utilisateur & le rôle depuis Neon
+    const user = session.user as any
+    const role =
+      user.role ??
+      user.metadata?.role ??
+      user["role"] ??
+      user.metadata?.["role"] ??
+      "practician"
+
+    // 3) Si pas admin → on redirige vers /practician
+    if (role !== "admin") {
+      router.replace("/practician")
+      return
+    }
+
+    // 4) OK, c'est un admin → on prépare currentUser pour l'UI
+    const current = {
+      email: user.email ?? null,
+      firstName: user.metadata?.firstName ?? user.name ?? "",
+      lastName: user.metadata?.lastName ?? "",
+    }
+
+    setCurrentUser(current)
+  }, [isPending, session, router])
+
+  // 📦 Charger les pièces uniquement quand on a un admin valide
+  useEffect(() => {
+    if (!currentUser) return
     loadPieces()
-  }, [router])
+  }, [currentUser])
 
   const loadPieces = async () => {
     try {
@@ -119,41 +160,48 @@ export default function AdminPage() {
     }
   }
 
-const handleMarkEmaillageComplete = async (pieceId: number) => {
-  try {
-    const res = await fetch("/api/pieces/complete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pieceId, type: "emaillage" }),
-    })
+  const handleMarkEmaillageComplete = async (pieceId: number) => {
+    try {
+      const res = await fetch("/api/pieces/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pieceId, type: "emaillage" }),
+      })
 
-    if (!res.ok) {
-      console.error("Erreur lors de la validation de l'émaillage")
-      return
+      if (!res.ok) {
+        console.error("Erreur lors de la validation de l'émaillage")
+        return
+      }
+
+      const updated = await res.json()
+      await loadPieces()
+
+      if (updated.submittedBy?.email) {
+        console.log(
+          `[v0] Notification envoyée à ${updated.submittedBy.email}: Émaillage terminé - Pièce prête`,
+        )
+      }
+    } catch (error) {
+      console.error("Erreur réseau lors de la validation de l'émaillage", error)
     }
-
-    const updated = await res.json()
-    await loadPieces()
-
-    if (updated.submittedBy?.email) {
-      console.log(
-        `[v0] Notification envoyée à ${updated.submittedBy.email}: Émaillage terminé - Pièce prête`,
-      )
-    }
-  } catch (error) {
-    console.error("Erreur réseau lors de la validation de l'émaillage", error)
   }
-}
 
   const handleLogout = () => {
-    localStorage.removeItem("user")
-    router.push("/")
+    router.push("/auth/sign-out")
   }
 
-  if (!currentUser) {
-    return <div className="min-h-screen flex items-center justify-center">Chargement...</div>
+  // 🧊 Écran d’attente tant que :
+  // - la session charge (isPending)
+  // - OU on n’a pas encore currentUser (en cours de vérif + éventuelle redirection)
+  if (isPending || !currentUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Chargement / vérification des droits admin...
+      </div>
+    )
   }
 
+  // ✅ Ici on est sûr : session OK + rôle = admin
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#f5d4c5] to-white">
       {/* Header */}
@@ -162,7 +210,7 @@ const handleMarkEmaillageComplete = async (pieceId: number) => {
           <div>
             <h1 className="text-3xl font-bold text-[#8b6d47]">🔥 Gestion des Cuissons</h1>
             <p className="text-sm text-gray-600 mt-1">
-              Connecté en tant que:{" "}
+              Connecté en tant que{" "}
               <span className="font-semibold">
                 {currentUser.firstName} {currentUser.lastName}
               </span>{" "}

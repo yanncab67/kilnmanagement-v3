@@ -14,8 +14,7 @@ export async function GET(req: NextRequest) {
           id,
           user_email,
           user_first_name,
-          user_last_name,
-          photo,
+          photo_url,
           temperature_type,
           clay_type,
           notes,
@@ -39,8 +38,7 @@ export async function GET(req: NextRequest) {
           id,
           user_email,
           user_first_name,
-          user_last_name,
-          photo,
+          photo_url,
           temperature_type,
           clay_type,
           notes,
@@ -63,9 +61,8 @@ export async function GET(req: NextRequest) {
       submittedBy: {
         email: row.user_email,
         firstName: row.user_first_name,
-        lastName: row.user_last_name,
       },
-      photo: row.photo,
+      photoUrl: row.photo_url,
       temperatureType: row.temperature_type,
       clayType: row.clay_type,
       notes: row.notes,
@@ -93,8 +90,7 @@ export async function POST(req: NextRequest) {
     const {
       userEmail,
       firstName,
-      lastName,
-      photo,
+      photoUrl,
       temperatureType,
       clayType,
       notes,
@@ -102,9 +98,12 @@ export async function POST(req: NextRequest) {
     } = body
 
     // Champs obligatoires minimaux
-    if (!userEmail || !firstName || !lastName || !photo || !temperatureType || !clayType) {
+    if (!userEmail || !firstName || !photoUrl || !temperatureType || !clayType) {
       return NextResponse.json(
-        { error: "userEmail, firstName, lastName, photo, temperatureType et clayType sont requis" },
+        {
+          error:
+            "userEmail, firstName, photoUrl, temperatureType et clayType sont requis",
+        },
         { status: 400 },
       )
     }
@@ -115,8 +114,7 @@ export async function POST(req: NextRequest) {
       INSERT INTO pieces (
         user_email,
         user_first_name,
-        user_last_name,
-        photo,
+        photo_url,
         temperature_type,
         clay_type,
         notes,
@@ -131,8 +129,7 @@ export async function POST(req: NextRequest) {
       ) VALUES (
         ${userEmail},
         ${firstName},
-        ${lastName},
-        ${photo},
+        ${photoUrl},
         ${temperatureType},
         ${clayType},
         ${notes ?? null},
@@ -149,8 +146,7 @@ export async function POST(req: NextRequest) {
         id,
         user_email,
         user_first_name,
-        user_last_name,
-        photo,
+        photo_url,
         temperature_type,
         clay_type,
         notes,
@@ -172,9 +168,8 @@ export async function POST(req: NextRequest) {
       submittedBy: {
         email: row.user_email,
         firstName: row.user_first_name,
-        lastName: row.user_last_name,
       },
-      photo: row.photo,
+      photoUrl: row.photo_url,
       temperatureType: row.temperature_type,
       clayType: row.clay_type,
       notes: row.notes,

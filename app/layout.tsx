@@ -31,7 +31,7 @@ export default function RootLayout({
       >
         <NeonAuthUIProvider
           authClient={authClient} 
-          redirectTo="/account/settings"
+          redirectTo="/"
           emailOTP
         >
           <header className='flex justify-end items-center p-4 gap-4 h-16'>

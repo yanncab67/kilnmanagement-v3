@@ -34,3 +34,5 @@ build/
 
 # Misc
 .cache/
+.vercel
+.env*.local
