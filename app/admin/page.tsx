@@ -256,30 +256,31 @@ export default function AdminPage() {
       {/* 🎯 Header */}
       <div className="bg-white shadow-md border-b-2 border-[#c8623e]/20">
         <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex justify-between items-center flex-wrap gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-[#8b6d47] flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#8b6d47] flex items-center gap-2">
                 🔥 Gestion des Cuissons
               </h1>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-xs sm:text-sm text-gray-600 mt-1 truncate">
                 Connecté en tant que{" "}
                 <span className="font-semibold text-[#8b6d47]">
                   {currentUser.firstName} {currentUser.lastName}
                 </span>{" "}
-                ({currentUser.email})
+                <span className="hidden sm:inline">({currentUser.email})</span>
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex flex-row gap-2 sm:gap-3 w-full sm:w-auto">
               <Button
                 onClick={() => router.push("/admin/mes-pieces")}
                 variant="outline"
-                className="border-[#8b6d47] text-[#8b6d47] hover:bg-[#8b6d47] hover:text-white"
+                className="border-[#8b6d47] text-[#8b6d47] hover:bg-[#8b6d47] hover:text-white flex-1 sm:flex-none min-h-[44px] text-sm"
               >
-                📝 Mes Pièces
+                <span className="hidden sm:inline">📝 Mes Pièces</span>
+                <span className="sm:hidden">📝 Pièces</span>
               </Button>
-              <Button 
-                onClick={handleLogout} 
-                className="bg-blue-600 hover:bg-blue-700"
+              <Button
+                onClick={handleLogout}
+                className="bg-blue-600 hover:bg-blue-700 flex-1 sm:flex-none min-h-[44px] text-sm"
               >
                 Déconnexion
               </Button>
@@ -290,32 +291,32 @@ export default function AdminPage() {
 
       {/* 📊 Statistiques rapides */}
       <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
           <Card className="border-orange-200 bg-orange-50">
-            <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-orange-600">{biscuitPieces.length}</p>
-              <p className="text-sm text-gray-600 mt-1">Biscuits en attente</p>
+            <CardContent className="p-3 sm:p-4 text-center">
+              <p className="text-2xl sm:text-3xl font-bold text-orange-600">{biscuitPieces.length}</p>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1">Biscuits</p>
             </CardContent>
           </Card>
-          
+
           <Card className="border-blue-200 bg-blue-50">
-            <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-blue-600">{emaillagePieces.length}</p>
-              <p className="text-sm text-gray-600 mt-1">Émaillages en attente</p>
+            <CardContent className="p-3 sm:p-4 text-center">
+              <p className="text-2xl sm:text-3xl font-bold text-blue-600">{emaillagePieces.length}</p>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1">Émaillages</p>
             </CardContent>
           </Card>
-          
+
           <Card className="border-slate-200 bg-slate-50">
-            <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-slate-600">{allActivePieces.length}</p>
-              <p className="text-sm text-gray-600 mt-1">Pièces actives</p>
+            <CardContent className="p-3 sm:p-4 text-center">
+              <p className="text-2xl sm:text-3xl font-bold text-slate-600">{allActivePieces.length}</p>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1">Actives</p>
             </CardContent>
           </Card>
-          
+
           <Card className="border-green-200 bg-green-50">
-            <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-green-600">{completedPieces.length}</p>
-              <p className="text-sm text-gray-600 mt-1">Pièces terminées</p>
+            <CardContent className="p-3 sm:p-4 text-center">
+              <p className="text-2xl sm:text-3xl font-bold text-green-600">{completedPieces.length}</p>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1">Terminées</p>
             </CardContent>
           </Card>
         </div>
@@ -324,18 +325,22 @@ export default function AdminPage() {
       {/* 📋 Contenu principal */}
       <div className="max-w-7xl mx-auto px-4 pb-8">
         <Tabs defaultValue="biscuit" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="biscuit">
-              🔥 Biscuit ({biscuitPieces.length})
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto gap-1 p-1">
+            <TabsTrigger value="biscuit" className="text-xs sm:text-sm py-2 min-h-[44px]">
+              <span className="sm:hidden">🔥 ({biscuitPieces.length})</span>
+              <span className="hidden sm:inline">🔥 Biscuit ({biscuitPieces.length})</span>
             </TabsTrigger>
-            <TabsTrigger value="emaillage">
-              🎨 Émaillage ({emaillagePieces.length})
+            <TabsTrigger value="emaillage" className="text-xs sm:text-sm py-2 min-h-[44px]">
+              <span className="sm:hidden">🎨 ({emaillagePieces.length})</span>
+              <span className="hidden sm:inline">🎨 Émaillage ({emaillagePieces.length})</span>
             </TabsTrigger>
-            <TabsTrigger value="all">
-              📦 Toutes ({allActivePieces.length})
+            <TabsTrigger value="all" className="text-xs sm:text-sm py-2 min-h-[44px]">
+              <span className="sm:hidden">📦 ({allActivePieces.length})</span>
+              <span className="hidden sm:inline">📦 Toutes ({allActivePieces.length})</span>
             </TabsTrigger>
-            <TabsTrigger value="history">
-              ✅ Historique ({completedPieces.length})
+            <TabsTrigger value="history" className="text-xs sm:text-sm py-2 min-h-[44px]">
+              <span className="sm:hidden">✅ ({completedPieces.length})</span>
+              <span className="hidden sm:inline">✅ Historique ({completedPieces.length})</span>
             </TabsTrigger>
           </TabsList>
 
@@ -412,48 +417,62 @@ export default function AdminPage() {
                   const daysRemaining = getDaysRemaining(piece.biscuitDate)
                   return (
                     <Card key={piece.id} className="border-l-4 border-orange-500 hover:shadow-lg transition-shadow">
-                      <CardContent className="p-6">
-                        <div className="grid gap-6 md:grid-cols-[120px_1fr_auto_auto] items-center">
-                          {/* Photo */}
-                          {piece.photoUrl && (
-                            <img
-                              src={piece.photoUrl}
-                              alt="Pièce céramique"
-                              className="w-full h-28 object-cover rounded-lg shadow-sm"
-                            />
-                          )}
-                          
-                          {/* Infos */}
-                          <div className="space-y-2">
-                            <div>
-                              <p className="font-bold text-lg text-[#8b6d47]">
-                                {piece.submittedBy?.firstName} {piece.submittedBy?.lastName}
-                              </p>
-                              <p className="text-sm text-slate-600">{piece.submittedBy?.email}</p>
-                            </div>
-                            
-                            <div className="flex gap-2 flex-wrap">
-                              <Badge variant="outline" className="bg-slate-50">
-                                {piece.temperatureType}
-                              </Badge>
-                              <Badge variant="outline" className="bg-slate-50">
-                                {piece.clayType}
-                              </Badge>
-                            </div>
-                            
-                            {piece.notes && (
-                              <p className="text-sm text-slate-600 italic">"{piece.notes}"</p>
+                      <CardContent className="p-3 sm:p-6">
+                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                          {/* Photo + Infos en row sur mobile */}
+                          <div className="flex gap-3 sm:contents">
+                            {piece.photoUrl && (
+                              <img
+                                src={piece.photoUrl}
+                                alt="Pièce céramique"
+                                className="w-20 h-20 sm:w-28 sm:h-28 object-cover rounded-lg shadow-sm flex-shrink-0"
+                              />
                             )}
+
+                            {/* Infos */}
+                            <div className="flex-1 min-w-0 space-y-1 sm:space-y-2">
+                              <div>
+                                <p className="font-bold text-sm sm:text-lg text-[#8b6d47] truncate">
+                                  {piece.submittedBy?.firstName} {piece.submittedBy?.lastName}
+                                </p>
+                                <p className="text-xs sm:text-sm text-slate-600 truncate">{piece.submittedBy?.email}</p>
+                              </div>
+
+                              <div className="flex gap-1 sm:gap-2 flex-wrap">
+                                <Badge variant="outline" className="bg-slate-50 text-xs">
+                                  {piece.temperatureType}
+                                </Badge>
+                                <Badge variant="outline" className="bg-slate-50 text-xs">
+                                  {piece.clayType}
+                                </Badge>
+                              </div>
+
+                              {/* Date sur mobile dans cette section */}
+                              <div className="sm:hidden">
+                                <p className={`text-xs font-medium ${getPriorityColor(daysRemaining)}`}>
+                                  {new Date(piece.biscuitDate).toLocaleDateString("fr-FR")} - {daysRemaining < 0
+                                    ? `En retard ${Math.abs(daysRemaining)}j`
+                                    : daysRemaining === 0
+                                    ? "Aujourd'hui"
+                                    : `${daysRemaining}j`
+                                  }
+                                </p>
+                              </div>
+                            </div>
                           </div>
-                          
-                          {/* Date */}
-                          <div className="text-center">
+
+                          {piece.notes && (
+                            <p className="text-xs sm:text-sm text-slate-600 italic line-clamp-2">"{piece.notes}"</p>
+                          )}
+
+                          {/* Date desktop */}
+                          <div className="hidden sm:block text-center flex-shrink-0">
                             <p className="text-sm text-slate-600 mb-1">Date souhaitée</p>
                             <p className="font-semibold text-[#8b6d47]">
                               {new Date(piece.biscuitDate).toLocaleDateString("fr-FR")}
                             </p>
                             <p className={`text-sm mt-1 ${getPriorityColor(daysRemaining)}`}>
-                              {daysRemaining < 0 
+                              {daysRemaining < 0
                                 ? `⚠️ En retard de ${Math.abs(daysRemaining)}j`
                                 : daysRemaining === 0
                                 ? "🔥 Aujourd'hui"
@@ -461,11 +480,11 @@ export default function AdminPage() {
                               }
                             </p>
                           </div>
-                          
+
                           {/* Action */}
                           <Button
                             onClick={() => handleMarkBiscuitComplete(piece.id)}
-                            className="bg-green-600 hover:bg-green-700 whitespace-nowrap"
+                            className="bg-green-600 hover:bg-green-700 w-full sm:w-auto min-h-[44px] flex-shrink-0"
                           >
                             ✓ Marquer cuit
                           </Button>
@@ -551,45 +570,62 @@ export default function AdminPage() {
                   const daysRemaining = getDaysRemaining(piece.emaillageDate)
                   return (
                     <Card key={piece.id} className="border-l-4 border-blue-500 hover:shadow-lg transition-shadow">
-                      <CardContent className="p-6">
-                        <div className="grid gap-6 md:grid-cols-[120px_1fr_auto_auto] items-center">
-                          {piece.photoUrl && (
-                            <img
-                              src={piece.photoUrl}
-                              alt="Pièce céramique"
-                              className="w-full h-28 object-cover rounded-lg shadow-sm"
-                            />
-                          )}
-                          
-                          <div className="space-y-2">
-                            <div>
-                              <p className="font-bold text-lg text-[#8b6d47]">
-                                {piece.submittedBy?.firstName} {piece.submittedBy?.lastName}
-                              </p>
-                              <p className="text-sm text-slate-600">{piece.submittedBy?.email}</p>
-                            </div>
-                            
-                            <div className="flex gap-2 flex-wrap">
-                              <Badge variant="outline" className="bg-slate-50">
-                                {piece.temperatureType}
-                              </Badge>
-                              <Badge variant="outline" className="bg-slate-50">
-                                {piece.clayType}
-                              </Badge>
-                            </div>
-                            
-                            {piece.notes && (
-                              <p className="text-sm text-slate-600 italic">"{piece.notes}"</p>
+                      <CardContent className="p-3 sm:p-6">
+                        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                          {/* Photo + Infos en row sur mobile */}
+                          <div className="flex gap-3 sm:contents">
+                            {piece.photoUrl && (
+                              <img
+                                src={piece.photoUrl}
+                                alt="Pièce céramique"
+                                className="w-20 h-20 sm:w-28 sm:h-28 object-cover rounded-lg shadow-sm flex-shrink-0"
+                              />
                             )}
+
+                            {/* Infos */}
+                            <div className="flex-1 min-w-0 space-y-1 sm:space-y-2">
+                              <div>
+                                <p className="font-bold text-sm sm:text-lg text-[#8b6d47] truncate">
+                                  {piece.submittedBy?.firstName} {piece.submittedBy?.lastName}
+                                </p>
+                                <p className="text-xs sm:text-sm text-slate-600 truncate">{piece.submittedBy?.email}</p>
+                              </div>
+
+                              <div className="flex gap-1 sm:gap-2 flex-wrap">
+                                <Badge variant="outline" className="bg-slate-50 text-xs">
+                                  {piece.temperatureType}
+                                </Badge>
+                                <Badge variant="outline" className="bg-slate-50 text-xs">
+                                  {piece.clayType}
+                                </Badge>
+                              </div>
+
+                              {/* Date sur mobile */}
+                              <div className="sm:hidden">
+                                <p className={`text-xs font-medium ${getPriorityColor(daysRemaining)}`}>
+                                  {new Date(piece.emaillageDate).toLocaleDateString("fr-FR")} - {daysRemaining < 0
+                                    ? `En retard ${Math.abs(daysRemaining)}j`
+                                    : daysRemaining === 0
+                                    ? "Aujourd'hui"
+                                    : `${daysRemaining}j`
+                                  }
+                                </p>
+                              </div>
+                            </div>
                           </div>
-                          
-                          <div className="text-center">
+
+                          {piece.notes && (
+                            <p className="text-xs sm:text-sm text-slate-600 italic line-clamp-2">"{piece.notes}"</p>
+                          )}
+
+                          {/* Date desktop */}
+                          <div className="hidden sm:block text-center flex-shrink-0">
                             <p className="text-sm text-slate-600 mb-1">Date souhaitée</p>
                             <p className="font-semibold text-[#8b6d47]">
                               {new Date(piece.emaillageDate).toLocaleDateString("fr-FR")}
                             </p>
                             <p className={`text-sm mt-1 ${getPriorityColor(daysRemaining)}`}>
-                              {daysRemaining < 0 
+                              {daysRemaining < 0
                                 ? `⚠️ En retard de ${Math.abs(daysRemaining)}j`
                                 : daysRemaining === 0
                                 ? "🔥 Aujourd'hui"
@@ -597,10 +633,11 @@ export default function AdminPage() {
                               }
                             </p>
                           </div>
-                          
+
+                          {/* Action */}
                           <Button
                             onClick={() => handleMarkEmaillageComplete(piece.id)}
-                            className="bg-green-600 hover:bg-green-700 whitespace-nowrap"
+                            className="bg-green-600 hover:bg-green-700 w-full sm:w-auto min-h-[44px] flex-shrink-0"
                           >
                             ✓ Marquer cuit
                           </Button>
@@ -624,55 +661,59 @@ export default function AdminPage() {
             ) : (
               allActivePieces.map((piece) => (
                 <Card key={piece.id} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="grid gap-6 md:grid-cols-[120px_1fr_auto] items-center">
-                      {piece.photoUrl && (
-                        <img
-                          src={piece.photoUrl}
-                          alt="Pièce"
-                          className="w-full h-28 object-cover rounded-lg shadow-sm"
-                        />
-                      )}
-                      
-                      <div className="space-y-3">
-                        <div>
-                          <p className="font-bold text-lg text-[#8b6d47]">
-                            {piece.submittedBy?.firstName} {piece.submittedBy?.lastName}
-                          </p>
-                          <p className="text-sm text-slate-600">{piece.submittedBy?.email}</p>
-                        </div>
-                        
-                        <div className="flex gap-2 flex-wrap">
-                          <Badge variant="outline">{piece.temperatureType}</Badge>
-                          <Badge variant="outline">{piece.clayType}</Badge>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-2 text-sm">
+                  <CardContent className="p-3 sm:p-6">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                      {/* Photo + Infos en row sur mobile */}
+                      <div className="flex gap-3 sm:contents">
+                        {piece.photoUrl && (
+                          <img
+                            src={piece.photoUrl}
+                            alt="Pièce"
+                            className="w-20 h-20 sm:w-28 sm:h-28 object-cover rounded-lg shadow-sm flex-shrink-0"
+                          />
+                        )}
+
+                        <div className="flex-1 min-w-0 space-y-2">
                           <div>
-                            <span className="font-medium">Biscuit:</span>{" "}
-                            {piece.biscuitCompleted ? (
-                              <span className="text-green-600">✓ Fait</span>
-                            ) : piece.biscuitRequested ? (
-                              <span className="text-orange-600">⏰ Demandé</span>
-                            ) : (
-                              <span className="text-slate-400">❌ Non demandé</span>
-                            )}
+                            <p className="font-bold text-sm sm:text-lg text-[#8b6d47] truncate">
+                              {piece.submittedBy?.firstName} {piece.submittedBy?.lastName}
+                            </p>
+                            <p className="text-xs sm:text-sm text-slate-600 truncate">{piece.submittedBy?.email}</p>
                           </div>
-                          <div>
-                            <span className="font-medium">Émaillage:</span>{" "}
-                            {piece.emaillageCompleted ? (
-                              <span className="text-green-600">✓ Fait</span>
-                            ) : piece.emaillageRequested ? (
-                              <span className="text-blue-600">⏰ Demandé</span>
-                            ) : (
-                              <span className="text-slate-400">❌ Non demandé</span>
-                            )}
+
+                          <div className="flex gap-1 sm:gap-2 flex-wrap">
+                            <Badge variant="outline" className="text-xs">{piece.temperatureType}</Badge>
+                            <Badge variant="outline" className="text-xs">{piece.clayType}</Badge>
                           </div>
                         </div>
                       </div>
-                      
-                      <div className="text-sm text-slate-600">
-                        Ajoutée le {new Date(piece.submittedDate).toLocaleDateString("fr-FR")}
+
+                      {/* Statuts */}
+                      <div className="grid grid-cols-2 gap-2 text-xs sm:text-sm">
+                        <div>
+                          <span className="font-medium">Biscuit:</span>{" "}
+                          {piece.biscuitCompleted ? (
+                            <span className="text-green-600">✓</span>
+                          ) : piece.biscuitRequested ? (
+                            <span className="text-orange-600">⏰</span>
+                          ) : (
+                            <span className="text-slate-400">❌</span>
+                          )}
+                        </div>
+                        <div>
+                          <span className="font-medium">Émaillage:</span>{" "}
+                          {piece.emaillageCompleted ? (
+                            <span className="text-green-600">✓</span>
+                          ) : piece.emaillageRequested ? (
+                            <span className="text-blue-600">⏰</span>
+                          ) : (
+                            <span className="text-slate-400">❌</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="text-xs sm:text-sm text-slate-600 sm:flex-shrink-0">
+                        {new Date(piece.submittedDate).toLocaleDateString("fr-FR")}
                       </div>
                     </div>
                   </CardContent>
@@ -693,54 +734,58 @@ export default function AdminPage() {
             ) : (
               completedPieces.map((piece) => (
                 <Card key={piece.id} className="bg-green-50 border-l-4 border-green-600 hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="grid gap-6 md:grid-cols-[120px_1fr_auto] items-center">
-                      {piece.photoUrl && (
-                        <img
-                          src={piece.photoUrl}
-                          alt="Pièce"
-                          className="w-full h-28 object-cover rounded-lg shadow-sm"
-                        />
-                      )}
-                      
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl">✅</span>
-                          <div>
-                            <p className="font-bold text-lg text-green-800">
-                              {piece.submittedBy?.firstName} {piece.submittedBy?.lastName}
-                            </p>
-                            <p className="text-sm text-slate-600">{piece.submittedBy?.email}</p>
+                  <CardContent className="p-3 sm:p-6">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                      {/* Photo + Infos en row sur mobile */}
+                      <div className="flex gap-3 sm:contents">
+                        {piece.photoUrl && (
+                          <img
+                            src={piece.photoUrl}
+                            alt="Pièce"
+                            className="w-20 h-20 sm:w-28 sm:h-28 object-cover rounded-lg shadow-sm flex-shrink-0"
+                          />
+                        )}
+
+                        <div className="flex-1 min-w-0 space-y-1 sm:space-y-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg sm:text-2xl">✅</span>
+                            <div className="min-w-0">
+                              <p className="font-bold text-sm sm:text-lg text-green-800 truncate">
+                                {piece.submittedBy?.firstName} {piece.submittedBy?.lastName}
+                              </p>
+                              <p className="text-xs sm:text-sm text-slate-600 truncate">{piece.submittedBy?.email}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex gap-1 sm:gap-2 flex-wrap">
+                            <Badge variant="outline" className="bg-white text-xs">
+                              {piece.temperatureType}
+                            </Badge>
+                            <Badge variant="outline" className="bg-white text-xs">
+                              {piece.clayType}
+                            </Badge>
+                            <Badge className="bg-green-600 text-white text-xs">
+                              Terminée
+                            </Badge>
                           </div>
                         </div>
-                        
-                        <div className="flex gap-2 flex-wrap">
-                          <Badge variant="outline" className="bg-white">
-                            {piece.temperatureType}
-                          </Badge>
-                          <Badge variant="outline" className="bg-white">
-                            {piece.clayType}
-                          </Badge>
-                          <Badge className="bg-green-600 text-white">
-                            Terminée
-                          </Badge>
-                        </div>
-                        
-                        {piece.notes && (
-                          <p className="text-sm text-slate-600 italic">"{piece.notes}"</p>
-                        )}
                       </div>
-                      
-                      <div className="text-sm space-y-1">
-                        <p className="font-semibold text-green-700">Dates de cuisson</p>
+
+                      {piece.notes && (
+                        <p className="text-xs sm:text-sm text-slate-600 italic line-clamp-2">"{piece.notes}"</p>
+                      )}
+
+                      {/* Dates de cuisson */}
+                      <div className="text-xs sm:text-sm space-y-1 flex-shrink-0">
+                        <p className="font-semibold text-green-700">Cuissons</p>
                         <p className="text-slate-600">
-                          🔥 Biscuit: {piece.biscuitCompletedDate 
+                          🔥 {piece.biscuitCompletedDate
                             ? new Date(piece.biscuitCompletedDate).toLocaleDateString("fr-FR")
                             : "N/A"
                           }
                         </p>
                         <p className="text-slate-600">
-                          🎨 Émaillage: {piece.emaillageCompletedDate 
+                          🎨 {piece.emaillageCompletedDate
                             ? new Date(piece.emaillageCompletedDate).toLocaleDateString("fr-FR")
                             : "N/A"
                           }

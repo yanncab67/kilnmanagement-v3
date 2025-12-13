@@ -364,15 +364,20 @@ export default function PracticianPage() {
     <div className="min-h-screen bg-gradient-to-br from-[#f5d4c5] to-white p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-lg p-6 mb-8">
-          <div className="flex justify-between items-center flex-wrap gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-[#8b6d47] flex items-center gap-2">🏺 Mes Pièces en Cuisson</h1>
-              <p className="text-slate-600 mt-1">
-                Connecté en tant que: {currentUser.firstName} ({currentUser.email})
+        <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-[#8b6d47] flex items-center gap-2">
+                🏺 Mes Pièces
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-600 mt-1 truncate">
+                {currentUser.firstName} <span className="hidden sm:inline">({currentUser.email})</span>
               </p>
             </div>
-            <Button onClick={handleLogout} className="bg-blue-600 hover:bg-blue-700">
+            <Button
+              onClick={handleLogout}
+              className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto min-h-[44px]"
+            >
               Déconnexion
             </Button>
           </div>
@@ -380,10 +385,10 @@ export default function PracticianPage() {
 
         {/* New Piece Button */}
         {!showForm && (
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <Button
               onClick={() => setShowForm(true)}
-              className="w-full md:w-auto bg-[#c8623e] hover:bg-[#b8523e] text-white text-lg py-6 px-8 rounded-xl font-semibold"
+              className="w-full sm:w-auto bg-[#c8623e] hover:bg-[#b8523e] text-white text-base sm:text-lg py-4 sm:py-6 px-6 sm:px-8 rounded-xl font-semibold min-h-[52px]"
             >
               ➕ Nouvelle Pièce
             </Button>
@@ -392,16 +397,16 @@ export default function PracticianPage() {
 
         {/* Add Piece Form */}
         {showForm && (
-          <Card className="mb-8">
-            <CardContent className="p-6 space-y-6">
-              <h2 className="text-2xl font-bold text-[#8b6d47]">Ajouter une nouvelle pièce</h2>
+          <Card className="mb-6 sm:mb-8">
+            <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+              <h2 className="text-lg sm:text-2xl font-bold text-[#8b6d47]">Ajouter une nouvelle pièce</h2>
 
               <div className="space-y-2">
-                <Label>Photo de la pièce *</Label>
+                <Label className="text-sm sm:text-base">Photo de la pièce *</Label>
                 <div
                   onClick={isUploading ? undefined : handlePhotoCapture}
-                  className={`border-2 border-dashed border-[#c8623e] rounded-lg p-6 text-center transition ${
-                    isUploading ? "cursor-wait bg-gray-50" : "cursor-pointer hover:bg-[#f5d4c5]"
+                  className={`border-2 border-dashed border-[#c8623e] rounded-lg p-4 sm:p-6 text-center transition min-h-[120px] flex items-center justify-center ${
+                    isUploading ? "cursor-wait bg-gray-50" : "cursor-pointer hover:bg-[#f5d4c5] active:bg-[#f5d4c5]"
                   }`}
                 >
                   {isUploading ? (
@@ -415,18 +420,18 @@ export default function PracticianPage() {
                       <img
                         src={photoPreview}
                         alt="Preview"
-                        className="h-32 w-32 object-cover rounded-lg"
+                        className="h-24 w-24 sm:h-32 sm:w-32 object-cover rounded-lg"
                       />
                       <div className="flex items-center gap-2">
-                        <span className="text-green-600 text-xl">✅</span>
-                        <p className="text-sm text-green-600 font-semibold">Photo uploadée avec succès</p>
+                        <span className="text-green-600 text-lg sm:text-xl">✅</span>
+                        <p className="text-xs sm:text-sm text-green-600 font-semibold">Photo uploadée</p>
                       </div>
-                      <p className="text-xs text-slate-500">Cliquez pour changer la photo</p>
+                      <p className="text-xs text-slate-500">Touchez pour changer</p>
                     </div>
                   ) : (
                     <div>
-                      <p className="text-lg font-semibold text-[#c8623e]">📷 Ajouter une photo</p>
-                      <p className="text-sm text-slate-500 mt-1">Cliquez pour prendre ou uploader</p>
+                      <p className="text-base sm:text-lg font-semibold text-[#c8623e]">📷 Ajouter une photo</p>
+                      <p className="text-xs sm:text-sm text-slate-500 mt-1">Touchez pour prendre ou choisir</p>
                     </div>
                   )}
                 </div>
@@ -490,15 +495,15 @@ export default function PracticianPage() {
                 </Label>
               </div>
 
-              <div className="flex gap-4">
-                <Button 
-                  onClick={handleAddPiece} 
-                  className="bg-[#c8623e] hover:bg-[#b8523e]"
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                <Button
+                  onClick={handleAddPiece}
+                  className="bg-[#c8623e] hover:bg-[#b8523e] min-h-[44px] flex-1 sm:flex-none"
                   disabled={isUploading || !photoUrl}
                 >
                   {isUploading ? "Upload en cours..." : "Ajouter la pièce"}
                 </Button>
-                <Button 
+                <Button
                   onClick={() => {
                     setShowForm(false)
                     setPhotoFile(null)
@@ -508,9 +513,10 @@ export default function PracticianPage() {
                     setClayType("")
                     setNotes("")
                     setBiscuitDone(false)
-                  }} 
+                  }}
                   variant="outline"
                   disabled={isUploading}
+                  className="min-h-[44px] flex-1 sm:flex-none"
                 >
                   Annuler
                 </Button>
@@ -521,16 +527,16 @@ export default function PracticianPage() {
 
         {/* Pieces Grid */}
         <div>
-          <h2 className="text-2xl font-bold text-[#8b6d47] mb-6">Mes pièces en cours</h2>
+          <h2 className="text-lg sm:text-2xl font-bold text-[#8b6d47] mb-4 sm:mb-6">Mes pièces en cours</h2>
           {pieces.length === 0 ? (
             <Card>
-              <CardContent className="p-12 text-center">
-                <p className="text-slate-500 text-lg">Vous n'avez pas de pièces en cours</p>
-                <p className="text-slate-400 mt-2">Cliquez sur "Nouvelle Pièce" pour commencer</p>
+              <CardContent className="p-8 sm:p-12 text-center">
+                <p className="text-slate-500 text-base sm:text-lg">Vous n'avez pas de pièces en cours</p>
+                <p className="text-slate-400 mt-2 text-sm">Touchez "Nouvelle Pièce" pour commencer</p>
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {pieces.map((piece) => (
                 <Card key={piece.id} className="overflow-hidden">
                   <div className="relative">
@@ -538,34 +544,34 @@ export default function PracticianPage() {
                       <img
                         src={piece.photoUrl}
                         alt="Ceramic piece"
-                        className="w-full h-48 object-cover"
+                        className="w-full h-36 sm:h-48 object-cover"
                       />
                     )}
                   </div>
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex gap-2 flex-wrap">
+                  <CardContent className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+                    <div className="flex gap-1 sm:gap-2 flex-wrap">
                       <span className="bg-slate-100 px-2 py-1 rounded text-xs">{piece.temperatureType}</span>
                       <span className="bg-slate-100 px-2 py-1 rounded text-xs">{piece.clayType}</span>
                     </div>
-                    {piece.notes && <p className="text-sm text-slate-600 italic">"{piece.notes}"</p>}
+                    {piece.notes && <p className="text-xs sm:text-sm text-slate-600 italic line-clamp-2">"{piece.notes}"</p>}
 
                     <div className="space-y-2 pt-2">
                       <Button
                         onClick={() => handleRequestFiring(piece.id, "biscuit")}
                         disabled={piece.biscuitCompleted || piece.biscuitRequested}
-                        className={`w-full ${
+                        className={`w-full min-h-[44px] text-sm ${
                           piece.biscuitCompleted
                             ? "bg-green-600 hover:bg-green-600"
                             : "bg-[#c8623e] hover:bg-[#b8523e]"
                         }`}
                       >
-                        {piece.biscuitCompleted ? "✓ Biscuit effectué" : piece.biscuitRequested ? "⏰ Biscuit demandé" : "Demander cuisson biscuit"}
+                        {piece.biscuitCompleted ? "✓ Biscuit effectué" : piece.biscuitRequested ? "⏰ Biscuit demandé" : "Demander biscuit"}
                       </Button>
 
                       <Button
                         onClick={() => handleRequestFiring(piece.id, "emaillage")}
                         disabled={!piece.biscuitCompleted || piece.emaillageRequested || piece.emaillageCompleted}
-                        className={`w-full ${
+                        className={`w-full min-h-[44px] text-sm ${
                           piece.emaillageCompleted
                             ? "bg-green-600 hover:bg-green-600"
                             : !piece.biscuitCompleted
@@ -578,17 +584,17 @@ export default function PracticianPage() {
                           : piece.emaillageRequested
                           ? "⏰ Émaillage demandé"
                           : !piece.biscuitCompleted
-                          ? "⏰ En attente du biscuit"
-                          : "Demander cuisson émaillage"}
+                          ? "⏰ Attente biscuit"
+                          : "Demander émaillage"}
                       </Button>
 
-                      {/* 🗑️ Bouton de suppression */}
+                      {/* Bouton de suppression */}
                       <Button
                         onClick={() => openDeleteDialog(piece.id)}
                         variant="destructive"
-                        className="w-full"
+                        className="w-full min-h-[44px] text-sm"
                       >
-                        🗑️ Supprimer cette pièce
+                        🗑️ Supprimer
                       </Button>
                     </div>
                   </CardContent>
@@ -600,20 +606,20 @@ export default function PracticianPage() {
 
         {/* History Section */}
         {completedPieces.length > 0 && (
-          <div className="mt-12">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-[#8b6d47]">Historique des pièces terminées</h2>
+          <div className="mt-8 sm:mt-12">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4 sm:mb-6">
+              <h2 className="text-lg sm:text-2xl font-bold text-[#8b6d47]">Historique</h2>
               <Button
                 onClick={() => setShowHistory(!showHistory)}
                 variant="outline"
-                className="border-[#8b6d47] text-[#8b6d47] hover:bg-[#8b6d47] hover:text-white"
+                className="border-[#8b6d47] text-[#8b6d47] hover:bg-[#8b6d47] hover:text-white min-h-[44px] w-full sm:w-auto"
               >
-                {showHistory ? "Masquer l'historique" : "Afficher l'historique"} ({completedPieces.length})
+                {showHistory ? "Masquer" : "Afficher"} ({completedPieces.length})
               </Button>
             </div>
 
             {showHistory && (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                 {completedPieces.map((piece) => (
                   <Card key={piece.id} className="overflow-hidden border-2 border-green-200 bg-green-50">
                     <div className="relative">
@@ -621,28 +627,28 @@ export default function PracticianPage() {
                         <img
                           src={piece.photoUrl}
                           alt="Ceramic piece"
-                          className="w-full h-48 object-cover"
+                          className="w-full h-36 sm:h-48 object-cover"
                         />
                       )}
-                      <div className="absolute top-2 right-2 bg-green-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                      <div className="absolute top-2 right-2 bg-green-600 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-semibold">
                         ✓ Terminée
                       </div>
                     </div>
-                    <CardContent className="p-4 space-y-3">
-                      <div className="flex gap-2 flex-wrap">
+                    <CardContent className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+                      <div className="flex gap-1 sm:gap-2 flex-wrap">
                         <span className="bg-green-100 px-2 py-1 rounded text-xs font-medium">{piece.temperatureType}</span>
                         <span className="bg-green-100 px-2 py-1 rounded text-xs font-medium">{piece.clayType}</span>
                       </div>
-                      {piece.notes && <p className="text-sm text-slate-600 italic">"{piece.notes}"</p>}
-                      <div className="space-y-2 pt-2 border-t border-green-200">
+                      {piece.notes && <p className="text-xs sm:text-sm text-slate-600 italic line-clamp-2">"{piece.notes}"</p>}
+                      <div className="space-y-1 pt-2 border-t border-green-200">
                         <div className="text-xs text-slate-600 space-y-1">
                           <div className="flex justify-between">
-                            <span>✓ Biscuit:</span>
-                            <span className="font-medium">{piece.biscuitDate || "Non spécifié"}</span>
+                            <span>🔥 Biscuit:</span>
+                            <span className="font-medium">{piece.biscuitDate || "N/A"}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span>✓ Émaillage:</span>
-                            <span className="font-medium">{piece.emaillageDate || "Non spécifié"}</span>
+                            <span>🎨 Émaillage:</span>
+                            <span className="font-medium">{piece.emaillageDate || "N/A"}</span>
                           </div>
                         </div>
                       </div>
@@ -657,60 +663,67 @@ export default function PracticianPage() {
 
       {/* Date Selection Dialog */}
       <Dialog open={showDateDialog} onOpenChange={setShowDateDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Choisir la date souhaitée</DialogTitle>
-            <DialogDescription>
-              Sélectionnez la date à laquelle vous souhaitez que la cuisson {requestType} soit effectuée
+            <DialogTitle className="text-base sm:text-lg">Choisir la date</DialogTitle>
+            <DialogDescription className="text-sm">
+              Date souhaitée pour la cuisson {requestType}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="date">Date souhaitée</Label>
-              <Input id="date" type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} />
+              <Label htmlFor="date" className="text-sm">Date souhaitée</Label>
+              <Input
+                id="date"
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="min-h-[44px]"
+              />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDateDialog(false)}>
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowDateDialog(false)}
+              className="min-h-[44px] w-full sm:w-auto"
+            >
               Annuler
             </Button>
-            <Button onClick={confirmFiringRequest} className="bg-[#c8623e] hover:bg-[#b8523e]">
+            <Button
+              onClick={confirmFiringRequest}
+              className="bg-[#c8623e] hover:bg-[#b8523e] min-h-[44px] w-full sm:w-auto"
+            >
               Confirmer
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* 🗑️ Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="sm:max-w-md">
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
-            <AlertDialogDescription>
-              Êtes-vous sûr de vouloir supprimer cette pièce ? 
-              <br /><br />
-              <strong className="text-red-600">Cette action est irréversible</strong> et supprimera :
-              <ul className="list-disc list-inside mt-2 space-y-1">
-                <li>La pièce de votre liste</li>
-                <li>La photo associée</li>
-                <li>Toutes les demandes de cuisson en cours</li>
-              </ul>
+            <AlertDialogTitle className="text-base sm:text-lg">Confirmer la suppression</AlertDialogTitle>
+            <AlertDialogDescription className="text-sm">
+              <strong className="text-red-600">Action irréversible.</strong> Cela supprimera la pièce, la photo et les demandes de cuisson.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel 
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel
               onClick={() => {
                 setShowDeleteDialog(false)
                 setPieceToDelete(null)
               }}
               disabled={isDeleting}
+              className="min-h-[44px] w-full sm:w-auto"
             >
               Annuler
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-red-600 hover:bg-red-700 min-h-[44px] w-full sm:w-auto"
             >
               {isDeleting ? (
                 <>
